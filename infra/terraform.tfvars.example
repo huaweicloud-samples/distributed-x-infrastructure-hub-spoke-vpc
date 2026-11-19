@@ -1,0 +1,80 @@
+# terraform.tfvars.example
+# =========================================================================
+# 华为云 Terraform 输入变量示例
+# =========================================================================
+#
+# 使用方式:
+#   1. 复制本文件为 terraform.tfvars（不要提交 terraform.tfvars）
+#        cp terraform.tfvars.example terraform.tfvars
+#   2. 按需修改 region / identifier / availability_zones / spoke VPC 等
+#   3. 在华为云「我的凭证」页面获取 Access Key，按下方命令行设置环境变量
+#        export HW_ACCESS_KEY="<HW_ACCESS_KEY>"
+#        export HW_SECRET_KEY="<HW_SECRET_KEY>"
+#
+# 注意: 本文件仅含占位符与示例值，不含任何真实凭据。
+# =========================================================================
+
+# 华为云区域代码
+region = "cn-north-4"
+
+# 项目标识，作为资源命名后缀（避免重名时调整）
+identifier = "hubspoke-shared-services"
+
+# 可用区列表（按 region 内顺序；默认前 N 个）
+availability_zones = ["cn-north-4a", "cn-north-4b", "cn-north-4c"]
+
+# 工作负载 VPC（spoke）定义
+#   - cidr_block:        VPC 地址段
+#   - workload_subnets:  业务子网 CIDR 列表（按可用区分层）
+#   - transit_subnets:   ER 接入子网 CIDR 列表
+#   - number_azs:        使用的可用区数（≤ availability_zones 长度）
+#   - instance_flavor:   ECS 规格
+#   - image_name:        镜像名（公共镜像）
+#   - flow_log_config:   流日志保留天数
+vpcs = {
+  "spoke-vpc-1" = {
+    cidr_block       = "10.0.0.0/24"
+    workload_subnets = ["10.0.0.0/26", "10.0.0.64/26", "10.0.0.128/26"]
+    transit_subnets  = ["10.0.0.192/28", "10.0.0.208/28", "10.0.0.224/28"]
+    number_azs       = 2
+    instance_flavor  = "s6.small.1"
+    image_name       = "CentOS 7.9 64bit"
+    flow_log_config = {
+      retention_in_days = 7
+    }
+  }
+  "spoke-vpc-2" = {
+    cidr_block       = "10.0.1.0/24"
+    workload_subnets = ["10.0.0.0/26", "10.0.1.64/26", "10.0.1.128/26"]
+    transit_subnets      = ["10.0.1.192/28", "10.0.1.208/28", "10.0.1.224/28"]
+    number_azs       = 2
+    instance_flavor  = "s6.small.1"
+    image_name       = "CentOS 7.9 64bit"
+    flow_log_config = {
+      retention_in_days = 7
+    }
+  }
+}
+
+# 共享服务 VPC 配置
+shared_services_vpc = {
+  cidr_block               = "10.129.0.0/24"
+  endpoints_subnet_netmask = 28
+  transit_subnet_netmask   = 28
+  number_azs               = 2
+}
+
+# 本地数据中心 CIDR（用于入站 DNS 端点安全组放行）
+on_premises_cidr = "192.168.0.0/16"
+
+# 出站 DNS 转发规则（域名 → 目标 DNS 服务器）
+forwarding_rules = {
+  "example-domain" = {
+    domain_name = "example.com"
+    target_ip   = ["1.1.1.1", "2.2.2.2"]
+  }
+  "test-domain" = {
+    domain_name = "test.es"
+    target_ip   = ["1.1.1.1"]
+  }
+}
